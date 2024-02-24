@@ -26,15 +26,16 @@ fun GameScreen(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val gameViewModel = viewModel<GameViewModel>()
-            val board = gameViewModel.gameUiState.value.wholeGrid
-            val currentPlayer = gameViewModel.gameUiState.value.currentPlayer
+            val gameUiState = gameViewModel.gameUiState.value
+            val board = gameUiState.majorBoard
+            val currentPlayer = gameUiState.currentPlayer
 
             Text(text = "${currentPlayer.symbol}'s turn")
             Spacer(modifier = Modifier.height(16.dp))
             TicTacToeMajorBoard(
                 board = board,
-                onSquareClick = { id, squarePosition ->
-                    gameViewModel.updateSquare(id, squarePosition)
+                onSquareClick = { id, squarePosition, boardPosition ->
+                    gameViewModel.updateSquare(id, squarePosition, boardPosition)
                 }
             )
             Spacer(modifier = Modifier.height(16.dp))

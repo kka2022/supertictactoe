@@ -17,7 +17,7 @@ import com.example.supertictactoe.ui.model.MinorBoard
 fun TicTacToeMinorBoard(
     modifier: Modifier = Modifier,
     board: MinorBoard = DefaultDataSource.minorEmptyBoard,
-    onSquareClick: (String, Int) -> Unit = { String, Int ->}
+    onSquareClick: (String, Int, Int) -> Unit = { id, squarePosition, boardPosition -> }
 ) {
     Column(
         modifier = Modifier.border(
@@ -31,7 +31,19 @@ fun TicTacToeMinorBoard(
                     TicTacToeButton(
                         isActive = board.isActive,
                         text = square.playerSymbol.toString(),
-                        modifier = Modifier.clickable { onSquareClick(square.id, square.position) }
+                        modifier = Modifier.then(
+                            if (board.isActive) {
+                                Modifier.clickable {
+                                    onSquareClick(
+                                        square.id,
+                                        square.position,
+                                        board.position
+                                    )
+                                }
+                            } else {
+                                Modifier
+                            }
+                        )
                     )
                 }
             }

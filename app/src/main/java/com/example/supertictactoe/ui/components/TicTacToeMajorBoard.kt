@@ -13,7 +13,7 @@ import com.example.supertictactoe.ui.model.MajorBoard
 fun TicTacToeMajorBoard(
     modifier: Modifier = Modifier,
     board: MajorBoard = DefaultDataSource.emptyBoard,
-    onSquareClick: (String, Int) -> Unit = { String, Int -> }
+    onSquareClick: (String, Int, Int) -> Unit = { id, squarePosition, boardPosition -> }
 ) {
     Column(modifier = modifier) {
         for (row in board.grid) {

@@ -19,9 +19,9 @@ class GameViewModel : ViewModel() {
         _gameUiState.value = GameUiState()
     }
 
-    fun updateSquare(id: String, squarePosition: Int) {
+    fun updateSquare(id: String, squarePosition: Int, boardPosition: Int) {
         val newGrid = MajorBoard(
-            grid = _gameUiState.value.wholeGrid.grid.map { minorBoardsList ->
+            grid = _gameUiState.value.majorBoard.grid.map { minorBoardsList ->
                 minorBoardsList.map { minorBoard ->
                     val newMinorGrid = minorBoard.grid.map { squaresList ->
                         squaresList.map { square ->
@@ -39,21 +39,30 @@ class GameViewModel : ViewModel() {
                             }
                         }
                     }
-                    minorBoard.copy(
-                        grid = newMinorGrid,
-                        isActive = squarePosition == minorBoard.position
-                    )
+                    if (_gameUiState.value.currentPlayer == Player.PlayerX) {
+                        minorBoard.copy(
+                            grid = newMinorGrid,
+                            isActive = minorBoard.position == boardPosition
+                        )
+                    } else {
+                        minorBoard.copy(
+                            grid = newMinorGrid,
+                            isActive = squarePosition == minorBoard.position
+                        )
+                    }
                 }
             }
         )
         _gameUiState.value = _gameUiState.value.copy(
-            wholeGrid = newGrid,
-            currentPlayer = if (_gameUiState.value.currentPlayer == Player.PlayerO) Player.PlayerX else Player.PlayerO
+            majorBoard = newGrid,
+            currentPlayer = if (_gameUiState.value.currentPlayer == Player.PlayerO) Player.PlayerX else Player.PlayerO,
+            numberOfMoves = _gameUiState.value.numberOfMoves + 1
         )
     }
 }
 
 data class GameUiState(
-    val wholeGrid: MajorBoard = DefaultDataSource.emptyBoard,
-    val currentPlayer: Player = Player.PlayerX
+    val majorBoard: MajorBoard = DefaultDataSource.emptyBoard,
+    val currentPlayer: Player = Player.PlayerX,
+    val numberOfMoves: Int = 0
 )
