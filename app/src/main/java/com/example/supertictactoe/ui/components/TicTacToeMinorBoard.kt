@@ -41,11 +41,13 @@ fun TicTacToeMinorBoard(
                         modifier = Modifier.then(
                             if (board.isActive) {
                                 Modifier.clickable {
-                                    onSquareClick(
-                                        square.id,
-                                        square.position,
-                                        board.position
-                                    )
+                                    if (square.isEmpty) {
+                                        onSquareClick(
+                                            square.id,
+                                            square.position,
+                                            board.position
+                                        )
+                                    }
                                 }
                             } else {
                                 Modifier
