@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.example.supertictactoe.data.DefaultDataSource
 import com.example.supertictactoe.ui.model.MajorBoard
 import com.example.supertictactoe.ui.model.MinorBoard
+import com.example.supertictactoe.ui.model.MinorBoardStatus
 import com.example.supertictactoe.ui.model.Square
 
 enum class Player(val symbol: String) {
@@ -30,7 +31,8 @@ class GameViewModel : ViewModel() {
                         grid = newMinorGrid,
                         isActive = squarePosition == minorBoard.position
                     )
-                    newMinorBoard
+                    val minorBoardWithUpdatedStatus = updateMinorBoardStatus(newMinorBoard)
+                    minorBoardWithUpdatedStatus
                 }
             }
         )
@@ -45,6 +47,57 @@ class GameViewModel : ViewModel() {
         return if (player == Player.PlayerX) Player.PlayerO else Player.PlayerX
     }
 
+    private fun updateMinorBoardStatus(minorBoard: MinorBoard): MinorBoard {
+        val gridToCheck = minorBoard.grid.map {
+            it.map { square ->
+                square.playerSymbol
+            }
+        }
+        var newMinorBoardStatus = minorBoard.minorBoardStatus
+
+        for (row in gridToCheck) {
+            if (row.all { it == "x" }) {
+                newMinorBoardStatus = MinorBoardStatus.WinnerX
+            }
+            if (row.all { it == "o" }) {
+                newMinorBoardStatus = MinorBoardStatus.WinnerO
+            }
+        }
+
+        for (col in gridToCheck.indices) {
+            if (gridToCheck.all { it[col] == "x" }) {
+                newMinorBoardStatus = MinorBoardStatus.WinnerX
+            }
+            if (gridToCheck.all { it[col] == "o" }) {
+                newMinorBoardStatus = MinorBoardStatus.WinnerO
+            }
+        }
+
+        // Check diagonals
+        if ((gridToCheck.indices).all { gridToCheck[it][it] == "x" }) {
+            newMinorBoardStatus = MinorBoardStatus.WinnerX
+        }
+        if ((gridToCheck.indices).all { gridToCheck[it][it] == "o" }) {
+            newMinorBoardStatus = MinorBoardStatus.WinnerO
+        }
+
+        if ((gridToCheck.indices).all { gridToCheck[it][gridToCheck.size - 1 - it] == "x" }) {
+            newMinorBoardStatus = MinorBoardStatus.WinnerX
+        }
+        if ((gridToCheck.indices).all { gridToCheck[it][gridToCheck.size - 1 - it] == "o" }) {
+            newMinorBoardStatus = MinorBoardStatus.WinnerO
+        }
+
+        //        TODO: Handle Draw Condition
+        val isAnySquareEmpty = gridToCheck.any { subList -> subList.contains("") }
+        if (!isAnySquareEmpty && (newMinorBoardStatus != MinorBoardStatus.WinnerO && newMinorBoardStatus != MinorBoardStatus.WinnerX)) {
+            newMinorBoardStatus = MinorBoardStatus.Draw
+        }
+
+        return minorBoard.copy(
+            minorBoardStatus = newMinorBoardStatus
+        )
+    }
 
     private fun updatedMinorGrid(squareId: String, minorBoard: MinorBoard): List<List<Square>> {
         return minorBoard.grid.map { squaresList ->
