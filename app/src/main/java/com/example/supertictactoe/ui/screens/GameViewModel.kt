@@ -26,17 +26,10 @@ class GameViewModel : ViewModel() {
             grid = _gameUiState.value.majorBoard.grid.map { minorBoardsList ->
                 minorBoardsList.map { minorBoard ->
                     val newMinorGrid = updatedMinorGrid(squareId = id, minorBoard = minorBoard)
-                    val newMinorBoard = if (_gameUiState.value.currentPlayer == Player.PlayerX) {
-                        minorBoard.copy(
-                            grid = newMinorGrid,
-                            isActive = minorBoard.position == boardPosition
-                        )
-                    } else {
-                        minorBoard.copy(
-                            grid = newMinorGrid,
-                            isActive = squarePosition == minorBoard.position,
-                        )
-                    }
+                    val newMinorBoard = minorBoard.copy(
+                        grid = newMinorGrid,
+                        isActive = squarePosition == minorBoard.position
+                    )
                     newMinorBoard
                 }
             }
@@ -51,6 +44,7 @@ class GameViewModel : ViewModel() {
     private fun togglePlayer(player: Player): Player {
         return if (player == Player.PlayerX) Player.PlayerO else Player.PlayerX
     }
+
 
     private fun updatedMinorGrid(squareId: String, minorBoard: MinorBoard): List<List<Square>> {
         return minorBoard.grid.map { squaresList ->
