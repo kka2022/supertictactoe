@@ -2,6 +2,7 @@ package com.example.supertictactoe.data
 
 import com.example.supertictactoe.ui.model.MajorBoard
 import com.example.supertictactoe.ui.model.MinorBoard
+import com.example.supertictactoe.ui.model.MinorBoardStatus
 import com.example.supertictactoe.ui.model.Square
 
 object DefaultDataSource {
@@ -23,7 +24,8 @@ object DefaultDataSource {
                             )
                         }
                     },
-                    isActive = true
+                    isActive = true,
+                    minorBoardStatus = MinorBoardStatus.AvailableToPlay
                 )
             }
         }
@@ -37,6 +39,7 @@ object DefaultDataSource {
                 Square(playerSymbol = "p", isEmpty = true, position = position++)
             }
         },
-        isActive = true
+        isActive = true,
+        minorBoardStatus = MinorBoardStatus.AvailableToPlay
     )
 }

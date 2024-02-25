@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.supertictactoe.data.DefaultDataSource
 import com.example.supertictactoe.ui.model.MajorBoard
+import com.example.supertictactoe.ui.model.MinorBoard
+import com.example.supertictactoe.ui.model.Square
 
 enum class Player(val symbol: String) {
     PlayerX("x"),
@@ -23,23 +25,8 @@ class GameViewModel : ViewModel() {
         val newGrid = MajorBoard(
             grid = _gameUiState.value.majorBoard.grid.map { minorBoardsList ->
                 minorBoardsList.map { minorBoard ->
-                    val newMinorGrid = minorBoard.grid.map { squaresList ->
-                        squaresList.map { square ->
-                            if (square.id == id) {
-                                if (square.isEmpty) {
-                                    square.copy(
-                                        playerSymbol = _gameUiState.value.currentPlayer.symbol,
-                                        isEmpty = false
-                                    )
-                                } else {
-                                    square
-                                }
-                            } else {
-                                square
-                            }
-                        }
-                    }
-                    if (_gameUiState.value.currentPlayer == Player.PlayerX) {
+                    val newMinorGrid = updatedMinorGrid(squareId = id, minorBoard = minorBoard)
+                    val newMinorBoard = if (_gameUiState.value.currentPlayer == Player.PlayerX) {
                         minorBoard.copy(
                             grid = newMinorGrid,
                             isActive = minorBoard.position == boardPosition
@@ -47,17 +34,38 @@ class GameViewModel : ViewModel() {
                     } else {
                         minorBoard.copy(
                             grid = newMinorGrid,
-                            isActive = squarePosition == minorBoard.position
+                            isActive = squarePosition == minorBoard.position,
                         )
                     }
+                    newMinorBoard
                 }
             }
         )
         _gameUiState.value = _gameUiState.value.copy(
             majorBoard = newGrid,
-            currentPlayer = if (_gameUiState.value.currentPlayer == Player.PlayerO) Player.PlayerX else Player.PlayerO,
+            currentPlayer = togglePlayer(_gameUiState.value.currentPlayer),
             numberOfMoves = _gameUiState.value.numberOfMoves + 1
         )
+    }
+
+    private fun togglePlayer(player: Player): Player {
+        return if (player == Player.PlayerX) Player.PlayerO else Player.PlayerX
+    }
+
+    private fun updatedMinorGrid(squareId: String, minorBoard: MinorBoard): List<List<Square>> {
+        return minorBoard.grid.map { squaresList ->
+            squaresList.map { square ->
+                val newSquare = if (square.id == squareId && square.isEmpty) {
+                    square.copy(
+                        playerSymbol = _gameUiState.value.currentPlayer.symbol,
+                        isEmpty = false
+                    )
+                } else {
+                    square
+                }
+                newSquare
+            }
+        }
     }
 }
 
