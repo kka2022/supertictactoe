@@ -25,7 +25,7 @@ object DefaultDataSource {
                         }
                     },
                     isActive = true,
-                    minorBoardStatus = MinorBoardStatus.AvailableToPlay
+                    status = MinorBoardStatus.AvailableToPlay
                 )
             }
         }
@@ -40,6 +40,6 @@ object DefaultDataSource {
             }
         },
         isActive = true,
-        minorBoardStatus = MinorBoardStatus.AvailableToPlay
+        status = MinorBoardStatus.AvailableToPlay
     )
 }

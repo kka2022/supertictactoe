@@ -3,7 +3,6 @@ package com.example.supertictactoe.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,7 +24,7 @@ fun TicTacToeMajorBoard(
         for (row in board.grid) {
             Row {
                 for (minorBoard in row) {
-                    if (minorBoard.minorBoardStatus == MinorBoardStatus.AvailableToPlay) {
+                    if (minorBoard.status == MinorBoardStatus.AvailableToPlay) {
                         TicTacToeMinorBoard(
                             board = minorBoard,
                             modifier = Modifier,
@@ -38,7 +37,7 @@ fun TicTacToeMajorBoard(
                                 modifier = Modifier,
                                 onSquareClick = onSquareClick
                             )
-                            val text = when (minorBoard.minorBoardStatus) {
+                            val text = when (minorBoard.status) {
                                 MinorBoardStatus.WinnerX -> {
                                     "x"
                                 }

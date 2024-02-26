@@ -4,7 +4,7 @@ data class MinorBoard(
     val position: Int,
     val grid: List<List<Square>>,
     val isActive: Boolean,
-    val minorBoardStatus: MinorBoardStatus
+    val status: MinorBoardStatus
 )
 
 enum class MinorBoardStatus {

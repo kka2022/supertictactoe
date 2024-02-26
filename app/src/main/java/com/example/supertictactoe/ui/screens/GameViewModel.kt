@@ -29,15 +29,45 @@ class GameViewModel : ViewModel() {
                     val newMinorGrid = updatedMinorGrid(squareId = id, minorBoard = minorBoard)
                     val newMinorBoard = minorBoard.copy(
                         grid = newMinorGrid,
-                        isActive = squarePosition == minorBoard.position
                     )
-                    val minorBoardWithUpdatedStatus = updateMinorBoardStatus(newMinorBoard)
+                    val minorBoardWithUpdatedStatus =
+                        updateMinorBoardStatus(newMinorBoard, squarePosition)
                     minorBoardWithUpdatedStatus
                 }
             }
         )
+
+        var currentBoard: MinorBoard = DefaultDataSource.minorEmptyBoard
+        newGrid.grid.forEach() { minorBoardsList ->
+            minorBoardsList.forEach { minorBoard ->
+                if (minorBoard.position == squarePosition) {
+                    currentBoard = minorBoard.copy()
+                }
+            }
+        }
+
+        val gridWithUpdatedMinorBoardsStatus = MajorBoard(
+            grid = if (currentBoard.status == MinorBoardStatus.AvailableToPlay) {
+                newGrid.grid.map { minorBoardList ->
+                    minorBoardList.map { minorBoard ->
+                        minorBoard.copy(
+                            isActive = minorBoard.position == currentBoard.position
+                        )
+                    }
+                }
+            } else {
+                newGrid.grid.map { minorBoardList ->
+                    minorBoardList.map { minorBoard ->
+                        minorBoard.copy(
+                            isActive = minorBoard.status == MinorBoardStatus.AvailableToPlay
+                        )
+                    }
+                }
+            }
+        )
+
         _gameUiState.value = _gameUiState.value.copy(
-            majorBoard = newGrid,
+            majorBoard = gridWithUpdatedMinorBoardsStatus,
             currentPlayer = togglePlayer(_gameUiState.value.currentPlayer),
             numberOfMoves = _gameUiState.value.numberOfMoves + 1
         )
@@ -47,13 +77,13 @@ class GameViewModel : ViewModel() {
         return if (player == Player.PlayerX) Player.PlayerO else Player.PlayerX
     }
 
-    private fun updateMinorBoardStatus(minorBoard: MinorBoard): MinorBoard {
+    private fun updateMinorBoardStatus(minorBoard: MinorBoard, squarePosition: Int): MinorBoard {
         val gridToCheck = minorBoard.grid.map {
             it.map { square ->
                 square.playerSymbol
             }
         }
-        var newMinorBoardStatus = minorBoard.minorBoardStatus
+        var newMinorBoardStatus = minorBoard.status
 
         for (row in gridToCheck) {
             if (row.all { it == "x" }) {
@@ -88,14 +118,14 @@ class GameViewModel : ViewModel() {
             newMinorBoardStatus = MinorBoardStatus.WinnerO
         }
 
-        //        TODO: Handle Draw Condition
+        // Check Draw
         val isAnySquareEmpty = gridToCheck.any { subList -> subList.contains("") }
         if (!isAnySquareEmpty && (newMinorBoardStatus != MinorBoardStatus.WinnerO && newMinorBoardStatus != MinorBoardStatus.WinnerX)) {
             newMinorBoardStatus = MinorBoardStatus.Draw
         }
 
         return minorBoard.copy(
-            minorBoardStatus = newMinorBoardStatus
+            status = newMinorBoardStatus,
         )
     }
 
