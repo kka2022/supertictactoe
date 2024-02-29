@@ -6,12 +6,11 @@ import androidx.lifecycle.ViewModel
 import com.example.supertictactoe.data.DefaultDataSource
 import com.example.supertictactoe.ui.model.MajorBoard
 import com.example.supertictactoe.ui.model.MinorBoard
-import com.example.supertictactoe.ui.model.MinorBoardStatus
 import com.example.supertictactoe.ui.model.Square
 
 enum class Player(val symbol: String) {
-    PlayerX("x"),
-    PlayerO("o")
+    X("x"),
+    O("o")
 }
 
 class GameViewModel : ViewModel() {
@@ -22,23 +21,38 @@ class GameViewModel : ViewModel() {
         _gameUiState.value = GameUiState()
     }
 
-    fun updateSquare(id: String, squarePosition: Int, boardPosition: Int) {
+    fun updateSquare(id: String, squarePosition: Int) {
         val newGrid = MajorBoard(
             grid = _gameUiState.value.majorBoard.grid.map { minorBoardsList ->
                 minorBoardsList.map { minorBoard ->
                     val newMinorGrid = updatedMinorGrid(squareId = id, minorBoard = minorBoard)
-                    val newMinorBoard = minorBoard.copy(
+
+                    val newMinorBoardGameStatus = getGameStatus(newMinorGrid.map {
+                        it.map {square ->
+                            when (square.playerSymbol) {
+                                "x" -> {
+                                    GameStatus.WinnerX
+                                }
+                                "o" -> {
+                                    GameStatus.WinnerO
+                                }
+                                else -> {
+                                    GameStatus.AvailableToPlay
+                                }
+                            }
+                        }
+                    })
+                    val minorBoardWithUpdatedStatus = minorBoard.copy(
                         grid = newMinorGrid,
-                    )
-                    val minorBoardWithUpdatedStatus =
-                        updateMinorBoardStatus(newMinorBoard, squarePosition)
+                        status = newMinorBoardGameStatus)
+
                     minorBoardWithUpdatedStatus
                 }
             }
         )
 
         var currentBoard: MinorBoard = DefaultDataSource.minorEmptyBoard
-        newGrid.grid.forEach() { minorBoardsList ->
+        newGrid.grid.forEach { minorBoardsList ->
             minorBoardsList.forEach { minorBoard ->
                 if (minorBoard.position == squarePosition) {
                     currentBoard = minorBoard.copy()
@@ -47,7 +61,7 @@ class GameViewModel : ViewModel() {
         }
 
         val gridWithUpdatedMinorBoardsStatus = MajorBoard(
-            grid = if (currentBoard.status == MinorBoardStatus.AvailableToPlay) {
+            grid = if (currentBoard.status == GameStatus.AvailableToPlay) {
                 newGrid.grid.map { minorBoardList ->
                     minorBoardList.map { minorBoard ->
                         minorBoard.copy(
@@ -59,122 +73,70 @@ class GameViewModel : ViewModel() {
                 newGrid.grid.map { minorBoardList ->
                     minorBoardList.map { minorBoard ->
                         minorBoard.copy(
-                            isActive = minorBoard.status == MinorBoardStatus.AvailableToPlay
+                            isActive = minorBoard.status == GameStatus.AvailableToPlay
                         )
                     }
                 }
             }
         )
 
+        val newGameStatus = getGameStatus(gridWithUpdatedMinorBoardsStatus.grid.map {
+            it.map {minorBoard ->
+                minorBoard.status
+            }
+        })
         _gameUiState.value = _gameUiState.value.copy(
             majorBoard = gridWithUpdatedMinorBoardsStatus,
             currentPlayer = togglePlayer(_gameUiState.value.currentPlayer),
             numberOfMoves = _gameUiState.value.numberOfMoves + 1,
-            gameStatus = getGameStatus(gridWithUpdatedMinorBoardsStatus)
+            gameStatus = newGameStatus
         )
     }
 
     private fun togglePlayer(player: Player): Player {
-        return if (player == Player.PlayerX) Player.PlayerO else Player.PlayerX
+        return if (player == Player.X) Player.O else Player.X
     }
 
-    private fun updateMinorBoardStatus(minorBoard: MinorBoard, squarePosition: Int): MinorBoard {
-        val gridToCheck = minorBoard.grid.map {
-            it.map { square ->
-                square.playerSymbol
-            }
-        }
-        var newMinorBoardStatus = minorBoard.status
-
-        for (row in gridToCheck) {
-            if (row.all { it == "x" }) {
-                newMinorBoardStatus = MinorBoardStatus.WinnerX
-            }
-            if (row.all { it == "o" }) {
-                newMinorBoardStatus = MinorBoardStatus.WinnerO
-            }
-        }
-
-        for (col in gridToCheck.indices) {
-            if (gridToCheck.all { it[col] == "x" }) {
-                newMinorBoardStatus = MinorBoardStatus.WinnerX
-            }
-            if (gridToCheck.all { it[col] == "o" }) {
-                newMinorBoardStatus = MinorBoardStatus.WinnerO
-            }
-        }
-
-        // Check diagonals
-        if ((gridToCheck.indices).all { gridToCheck[it][it] == "x" }) {
-            newMinorBoardStatus = MinorBoardStatus.WinnerX
-        }
-        if ((gridToCheck.indices).all { gridToCheck[it][it] == "o" }) {
-            newMinorBoardStatus = MinorBoardStatus.WinnerO
-        }
-
-        if ((gridToCheck.indices).all { gridToCheck[it][gridToCheck.size - 1 - it] == "x" }) {
-            newMinorBoardStatus = MinorBoardStatus.WinnerX
-        }
-        if ((gridToCheck.indices).all { gridToCheck[it][gridToCheck.size - 1 - it] == "o" }) {
-            newMinorBoardStatus = MinorBoardStatus.WinnerO
-        }
-
-        // Check Draw
-        val isAnySquareEmpty = gridToCheck.any { subList -> subList.contains("") }
-        if (!isAnySquareEmpty && (newMinorBoardStatus != MinorBoardStatus.WinnerO && newMinorBoardStatus != MinorBoardStatus.WinnerX)) {
-            newMinorBoardStatus = MinorBoardStatus.Draw
-        }
-
-        return minorBoard.copy(
-            status = newMinorBoardStatus,
-        )
-    }
-
-    private fun getGameStatus(majorBoard: MajorBoard): GameStatus {
-        val gridToCheck = majorBoard.grid.map { minorBoardsList ->
-            minorBoardsList.map { minorBoard ->
-                minorBoard.status
-            }
-        }
+    private fun getGameStatus(gridToCheck: List<List<GameStatus>>): GameStatus {
 
         var newGameStatus = GameStatus.AvailableToPlay
 
         for (row in gridToCheck) {
-            if (row.all { it == MinorBoardStatus.WinnerX }) {
+            if (row.all { it == GameStatus.WinnerX }) {
                 newGameStatus = GameStatus.WinnerX
             }
-            if (row.all { it == MinorBoardStatus.WinnerO }) {
+            if (row.all { it == GameStatus.WinnerO }) {
                 newGameStatus = GameStatus.WinnerO
             }
         }
 
         for (col in gridToCheck.indices) {
-            if (gridToCheck.all { it[col] == MinorBoardStatus.WinnerX }) {
+            if (gridToCheck.all { it[col] == GameStatus.WinnerX }) {
                 newGameStatus = GameStatus.WinnerX
             }
-            if (gridToCheck.all { it[col] == MinorBoardStatus.WinnerO }) {
+            if (gridToCheck.all { it[col] == GameStatus.WinnerO }) {
                 newGameStatus = GameStatus.WinnerO
             }
         }
 
         // Check diagonals
-        if ((gridToCheck.indices).all { gridToCheck[it][it] == MinorBoardStatus.WinnerX }) {
+        if ((gridToCheck.indices).all { gridToCheck[it][it] == GameStatus.WinnerX }) {
             newGameStatus = GameStatus.WinnerX
         }
-        if ((gridToCheck.indices).all { gridToCheck[it][it] == MinorBoardStatus.WinnerO }) {
+        if ((gridToCheck.indices).all { gridToCheck[it][it] == GameStatus.WinnerO }) {
             newGameStatus = GameStatus.WinnerO
         }
 
-        if ((gridToCheck.indices).all { gridToCheck[it][gridToCheck.size - 1 - it] == MinorBoardStatus.WinnerX }) {
+        if ((gridToCheck.indices).all { gridToCheck[it][gridToCheck.size - 1 - it] == GameStatus.WinnerX }) {
             newGameStatus = GameStatus.WinnerX
         }
-        if ((gridToCheck.indices).all { gridToCheck[it][gridToCheck.size - 1 - it] == MinorBoardStatus.WinnerO }) {
+        if ((gridToCheck.indices).all { gridToCheck[it][gridToCheck.size - 1 - it] == GameStatus.WinnerO }) {
             newGameStatus = GameStatus.WinnerO
         }
 
         // Check Draw
         val isAnySquareEmpty =
-            gridToCheck.any { subList -> subList.contains(MinorBoardStatus.AvailableToPlay) }
+            gridToCheck.any { subList -> subList.contains(GameStatus.AvailableToPlay) }
         if (!isAnySquareEmpty && (newGameStatus != GameStatus.WinnerO && newGameStatus != GameStatus.WinnerX)) {
             newGameStatus = GameStatus.Draw
         }
@@ -207,7 +169,7 @@ enum class GameStatus {
 
 data class GameUiState(
     val majorBoard: MajorBoard = DefaultDataSource.emptyBoard,
-    val currentPlayer: Player = Player.PlayerX,
+    val currentPlayer: Player = Player.X,
     val numberOfMoves: Int = 0,
     val gameStatus: GameStatus = GameStatus.AvailableToPlay
 )

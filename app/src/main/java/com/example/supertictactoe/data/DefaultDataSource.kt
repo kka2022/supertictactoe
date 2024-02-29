@@ -2,8 +2,8 @@ package com.example.supertictactoe.data
 
 import com.example.supertictactoe.ui.model.MajorBoard
 import com.example.supertictactoe.ui.model.MinorBoard
-import com.example.supertictactoe.ui.model.MinorBoardStatus
 import com.example.supertictactoe.ui.model.Square
+import com.example.supertictactoe.ui.screens.GameStatus
 
 object DefaultDataSource {
     private const val boardSize = 3
@@ -25,7 +25,7 @@ object DefaultDataSource {
                         }
                     },
                     isActive = true,
-                    status = MinorBoardStatus.AvailableToPlay
+                    status = GameStatus.AvailableToPlay
                 )
             }
         }
@@ -36,10 +36,10 @@ object DefaultDataSource {
         grid = List(boardSize) {
             var position = 1
             List(boardSize) {
-                Square(playerSymbol = "p", isEmpty = true, position = position++)
+                Square(playerSymbol = "o", isEmpty = true, position = position++)
             }
         },
         isActive = true,
-        status = MinorBoardStatus.AvailableToPlay
+        status = GameStatus.AvailableToPlay
     )
 }
